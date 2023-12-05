@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /Migrations/20231204180443_new.cs
 /Migrations/20231204180443_new.Designer.cs
 /Migrations/MyListContextModelSnapshot.cs
+/Program.cs
