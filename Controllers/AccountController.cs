@@ -5,6 +5,8 @@ using MyList_backend.ViewModels;
 
 namespace MyList_backend.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class AccountController  : ControllerBase
     {
         private readonly MyListDbContext _db;
@@ -71,7 +73,7 @@ namespace MyList_backend.Controllers
                     return BadRequest(ModelState);
                 }
 
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: true, lockoutOnFailure: false);
+                Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: true, lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
