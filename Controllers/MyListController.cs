@@ -78,5 +78,72 @@ namespace MyList_backend.Controllers
                 return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message, InnerError = ex.InnerException?.Message });
             }
         }
+
+        [HttpPost("{myListName}/items")]
+        public async Task<ActionResult<Item>> CreateItem(string myListName, [FromBody] CreateItemViewModel item)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                if (currentUser == null)
+                    return Unauthorized("User not authenticated");
+
+                var myList = _db.MyLists
+                    .FirstOrDefault(entry => entry.Name == myListName && entry.User.Id == currentUser.Id);
+
+                if (myList == null)
+                    return NotFound("MyList not found or unauthorized access");
+
+                var newItem = new Item { Name = item.Name, User = currentUser };
+                myList.Items ??= new List<Item>();
+                myList.Items.Add(newItem);
+
+                _db.SaveChanges();
+
+                return Ok(newItem);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details using your preferred logging mechanism
+                Console.WriteLine($"Exception: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message, InnerError = ex.InnerException?.Message });
+            }
+        }
+
+
+        [HttpGet("{myListName}/items")]
+        public async Task<ActionResult<IEnumerable<Item>>> GetItemsInList(string myListName)
+        {
+            try
+            {
+                string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
+
+                // Ensure the requested MyList belongs to the current user
+                MyList myList = _db.MyLists
+                    .FirstOrDefault(entry => entry.Name == myListName && entry.User.Id == currentUser.Id);
+
+                if (myList == null)
+                {
+                    // MyList not found or doesn't belong to the user
+                    return NotFound("MyList not found or unauthorized access");
+                }
+
+                List<Item> itemsInList = _db.Items
+                    .Where(item => item.User.Id == currentUser.Id && item.MyList.MyListId == myList.MyListId)
+                    .ToList();
+
+                return Ok(itemsInList);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details
+                Console.WriteLine($"Exception: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message, InnerError = ex.InnerException?.Message });
+            }
+        }
     }
 }

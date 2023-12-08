@@ -6,6 +6,7 @@ namespace MyList_backend.Model
     public class MyListDbContext : IdentityDbContext<ApplicationUser>
     {
         public DbSet<MyList>? MyLists { get; set; }
+        public DbSet<Item>? Items { get; set; }
         public MyListDbContext(DbContextOptions options) : base(options) { }
     }
 }

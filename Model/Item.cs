@@ -2,12 +2,13 @@
 
 namespace MyList_backend.Model
 {
-    public class MyList
+    public class Item
     {
+        public int ItemId { get; set; }
+        public string? Name { get; set; }
         public int? MyListId { get; set; }
-        public string? Name { get; set;}
         [JsonIgnore]
-        public List<Item>? Items { get; set; } 
+        public MyList? MyList { get; set; }
         public ApplicationUser? User { get; set; }
     }
 }
