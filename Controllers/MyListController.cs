@@ -24,7 +24,7 @@ namespace MyList_backend.Controllers
 
         // POST: api/MyList
         [HttpPost]
-        public async Task<ActionResult> Create(CreateMyListViewModel myList)
+        public async Task<ActionResult> Create(CreateViewModel myList)
         {
             if (!ModelState.IsValid)
             {
@@ -46,10 +46,9 @@ namespace MyList_backend.Controllers
             {
                 return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message, InnerError = ex.InnerException?.Message });
             }
- 
-
-
         }
+
+        // GET: api/MyList
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MyList>>> GetMyLists()
         {
@@ -79,8 +78,81 @@ namespace MyList_backend.Controllers
             }
         }
 
-        [HttpPost("{myListName}/items")]
-        public async Task<ActionResult<Item>> CreateItem(string myListName, [FromBody] CreateItemViewModel item)
+        [HttpDelete("{myListId}")]
+        public ActionResult DeleteMyList(int myListId)
+        {
+            try
+            {
+                MyList myList = _db.MyLists.Find(myListId);
+
+                if (myList == null)
+                {
+                    return NotFound("MyList not found");
+                }
+
+                // Delete or dissociate associated items first
+                _db.Items.RemoveRange(_db.Items.Where(item => item.MyListId == myListId));
+
+                // Now, delete the MyList
+                _db.MyLists.Remove(myList);
+                _db.SaveChanges();
+
+                return Ok("MyList deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details using your preferred logging mechanism
+                Console.WriteLine($"Exception: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message, InnerError = ex.InnerException?.Message });
+            }
+        }
+
+        [HttpPut("{myListId}")]
+        public async Task<ActionResult> UpdateMyList(int myListId, [FromBody] UpdateViewModel updatedMyList)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
+
+                // Ensure the requested MyList belongs to the current user
+                MyList myListToUpdate = _db.MyLists
+                    .FirstOrDefault(entry => entry.MyListId == myListId && entry.User.Id == currentUser.Id);
+
+                if (myListToUpdate == null)
+                {
+                    // MyList not found or doesn't belong to the user
+                    return NotFound("MyList not found or unauthorized access");
+                }
+
+                // Update MyList properties
+                myListToUpdate.Name = updatedMyList.Name;
+                // Add more properties as needed
+
+                _db.SaveChanges();
+
+                return Ok("MyList updated successfully");
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details using your preferred logging mechanism
+                Console.WriteLine($"Exception: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message, InnerError = ex.InnerException?.Message });
+            }
+        }
+
+
+
+
+
+
+        [HttpPost("{myListId}/items")]
+        public async Task<ActionResult<Item>> CreateItem(int myListId, [FromBody] CreateViewModel item)
         {
             try
             {
@@ -92,7 +164,7 @@ namespace MyList_backend.Controllers
                     return Unauthorized("User not authenticated");
 
                 var myList = _db.MyLists
-                    .FirstOrDefault(entry => entry.Name == myListName && entry.User.Id == currentUser.Id);
+                    .FirstOrDefault(entry => entry.MyListId == myListId && entry.User.Id == currentUser.Id);
 
                 if (myList == null)
                     return NotFound("MyList not found or unauthorized access");
@@ -114,8 +186,8 @@ namespace MyList_backend.Controllers
         }
 
 
-        [HttpGet("{myListName}/items")]
-        public async Task<ActionResult<IEnumerable<Item>>> GetItemsInList(string myListName)
+        [HttpGet("{myListId}/items")]
+        public async Task<ActionResult<IEnumerable<Item>>> GetItemsInList(int myListId)
         {
             try
             {
@@ -124,7 +196,7 @@ namespace MyList_backend.Controllers
 
                 // Ensure the requested MyList belongs to the current user
                 MyList myList = _db.MyLists
-                    .FirstOrDefault(entry => entry.Name == myListName && entry.User.Id == currentUser.Id);
+                    .FirstOrDefault(entry => entry.MyListId == myListId && entry.User.Id == currentUser.Id);
 
                 if (myList == null)
                 {
@@ -145,5 +217,93 @@ namespace MyList_backend.Controllers
                 return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message, InnerError = ex.InnerException?.Message });
             }
         }
+
+        [HttpDelete("{myListId}/items/{itemId}")]
+        public async Task<ActionResult> DeleteItemInList(int myListId, int itemId)
+        {
+            try
+            {
+                string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
+
+                // Ensure the requested MyList and Item belong to the current user
+                MyList myList = _db.MyLists
+                    .FirstOrDefault(entry => entry.MyListId == myListId && entry.User.Id == currentUser.Id);
+
+                if (myList == null)
+                {
+                    // MyList not found or doesn't belong to the user
+                    return NotFound("MyList not found or unauthorized access");
+                }
+
+                Item itemToDelete = _db.Items
+                    .FirstOrDefault(item => item.ItemId == itemId && item.User.Id == currentUser.Id && item.MyList.MyListId == myList.MyListId);
+
+                if (itemToDelete == null)
+                {
+                    return NotFound("Item not found in the specified list");
+                }
+
+                _db.Items.Remove(itemToDelete);
+                _db.SaveChanges();
+
+                return Ok("Item deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details using your preferred logging mechanism
+                Console.WriteLine($"Exception: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message, InnerError = ex.InnerException?.Message });
+            }
+        }
+
+        [HttpPut("{myListId}/items/{itemId}")]
+        public async Task<ActionResult> UpdateItemInList(int myListId, int itemId, [FromBody] UpdateViewModel updatedItem)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
+
+                // Ensure the requested MyList and Item belong to the current user
+                MyList myList = _db.MyLists
+                    .FirstOrDefault(entry => entry.MyListId == myListId && entry.User.Id == currentUser.Id);
+
+                if (myList == null)
+                {
+                    // MyList not found or doesn't belong to the user
+                    return NotFound("MyList not found or unauthorized access");
+                }
+
+                Item itemToUpdate = _db.Items
+                    .FirstOrDefault(item => item.ItemId == itemId && item.User.Id == currentUser.Id && item.MyList.MyListId == myList.MyListId);
+
+                if (itemToUpdate == null)
+                {
+                    return NotFound("Item not found in the specified list");
+                }
+
+                // Update item properties
+                itemToUpdate.Name = updatedItem.Name;
+                // Add more properties as needed
+
+                _db.SaveChanges();
+
+                return Ok("Item updated successfully");
+            }
+            catch (Exception ex)
+            {
+                // Log the exception details using your preferred logging mechanism
+                Console.WriteLine($"Exception: {ex.Message}");
+                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message, InnerError = ex.InnerException?.Message });
+            }
+        }
+
+
     }
 }

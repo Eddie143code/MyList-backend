@@ -1,6 +1,6 @@
 ﻿namespace MyList_backend.ViewModels
 {
-    public class CreateItemViewModel
+    public class UpdateViewModel
     {
         public string? Name { get; set; }
     }
