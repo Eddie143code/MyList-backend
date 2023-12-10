@@ -7,6 +7,7 @@ namespace MyList_backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class AccountController  : ControllerBase
     {
         private readonly MyListDbContext _db;

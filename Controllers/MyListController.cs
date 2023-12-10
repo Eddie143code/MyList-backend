@@ -24,7 +24,7 @@ namespace MyList_backend.Controllers
 
         // POST: api/MyList
         [HttpPost]
-        public async Task<ActionResult> Create(CreateViewModel myList)
+        public async Task<ActionResult<object>> Create(CreateViewModel myList)
         {
             if (!ModelState.IsValid)
             {
