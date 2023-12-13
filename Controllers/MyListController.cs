@@ -5,26 +5,35 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using MyList_backend.ViewModels;
+using Microsoft.Extensions.Logging;
 
 namespace MyList_backend.Controllers
 {
-    [Authorize]
+ 
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
+
     public class MyListController : ControllerBase
     {
         private readonly MyListDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public MyListController(MyListDbContext db, UserManager<ApplicationUser> userManager)
+        private readonly ILogger<MyListController> _logger;
+
+     
+        
+
+        public MyListController(MyListDbContext db, UserManager<ApplicationUser> userManager, ILogger<MyListController> logger)
         {
             _db = db;
             _userManager = userManager;
+            _logger = logger;
         }
 
         // POST: api/MyList
         [HttpPost]
-        public async Task<ActionResult<object>> Create(CreateViewModel myList)
+        public async Task<ActionResult> Create(CreateViewModel myList)
         {
             if (!ModelState.IsValid)
             {
@@ -44,7 +53,7 @@ namespace MyList_backend.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "Internal Server Error", Error = ex.Message, InnerError = ex.InnerException?.Message });
+                return StatusCode(500, new { Message = "Internal fuck you" });
             }
         }
 
@@ -52,20 +61,17 @@ namespace MyList_backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<MyList>>> GetMyLists()
         {
-            try
-            {
+            try {
+                _logger.LogInformation("Request received. User: {User}", User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
                 string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
-
-                if (currentUser == null)
-                {
-                    // User not found, return a 404 NotFound result or another appropriate response
-                    return NotFound();
-                }
 
                 List<MyList> userItems = _db.MyLists
                     .Where(entry => entry.User.Id == currentUser.Id)
                     .ToList();
+
+
+
 
                 // Return the user-specific items as part of the ActionResult
                 return Ok(userItems);

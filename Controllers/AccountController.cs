@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MyList_backend.Model;
 using MyList_backend.ViewModels;
+using System.Security.Claims;
 
 namespace MyList_backend.Controllers
 {
@@ -62,8 +63,10 @@ namespace MyList_backend.Controllers
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginViewModel model)
         {
+
             try
             {
+
                 if (model == null)
                 {
                     return BadRequest("Invalid data format");
@@ -72,6 +75,7 @@ namespace MyList_backend.Controllers
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
+
                 }
 
                 Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: true, lockoutOnFailure: false);
