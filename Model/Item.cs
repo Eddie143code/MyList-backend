@@ -7,7 +7,7 @@ namespace MyList_backend.Model
         public int ItemId { get; set; }
         public string? Name { get; set; }
         public int? MyListId { get; set; }
- 
+        [JsonIgnore]
         public MyList? MyList { get; set; }
         public ApplicationUser? User { get; set; }
     }

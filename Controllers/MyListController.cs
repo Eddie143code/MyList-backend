@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using MyList_backend.ViewModels;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace MyList_backend.Controllers
 {
@@ -67,10 +68,10 @@ namespace MyList_backend.Controllers
                 ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
 
                 List<MyList> userItems = _db.MyLists
-                    .Where(entry => entry.User.Id == currentUser.Id)
-                    .ToList();
-
-
+             .Include(list => list.Items)  // Eager load the related items
+             .Where(entry => entry.User.Id == currentUser.Id)
+             .ToList();
+                _logger.LogInformation("Request received. User's items: {userItems}",userItems);
 
 
                 // Return the user-specific items as part of the ActionResult
