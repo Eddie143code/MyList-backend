@@ -34,22 +34,21 @@ namespace MyList_backend.Controllers
 
         // POST: api/MyList
         [HttpPost]
-        public async Task<ActionResult> Create(CreateViewModel myList)
+        public async Task<ActionResult<MyList>> Create(CreateViewModel myList)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+         
+         
 
             try
             {
-                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                _logger.LogInformation("Request received in create list. User: {User}", User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
 
                 MyList newMyList = new MyList { Name = myList.Name, User = currentUser };
                  _db.MyLists?.Add(newMyList);
                 _db.SaveChanges();
-                return Ok("success");
+                return Ok("Successfully added list");
 
             }
             catch (Exception ex)
