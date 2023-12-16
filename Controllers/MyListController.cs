@@ -48,7 +48,7 @@ namespace MyList_backend.Controllers
                 MyList newMyList = new MyList { Name = myList.Name, User = currentUser };
                  _db.MyLists?.Add(newMyList);
                 _db.SaveChanges();
-                return Ok("Successfully added list");
+                return Ok(newMyList);
 
             }
             catch (Exception ex)
@@ -103,7 +103,7 @@ namespace MyList_backend.Controllers
                 _db.MyLists.Remove(myList);
                 _db.SaveChanges();
 
-                return Ok("MyList deleted successfully");
+                return Ok(myListId);
             }
             catch (Exception ex)
             {
@@ -118,10 +118,7 @@ namespace MyList_backend.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+               
 
                 string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
