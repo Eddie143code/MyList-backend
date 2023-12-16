@@ -32,6 +32,8 @@ namespace MyList_backend.Controllers
             _logger = logger;
         }
 
+        // list
+
         // POST: api/MyList
         [HttpPost]
         public async Task<ActionResult<MyList>> Create(CreateViewModel myList)
@@ -151,11 +153,11 @@ namespace MyList_backend.Controllers
 
 
 
-
+        // items
 
 
         [HttpPost("{myListId}/items")]
-        public async Task<ActionResult<Item>> CreateItem(int myListId, [FromBody] CreateViewModel item)
+        public async Task<ActionResult> CreateItem(int myListId, [FromBody] CreateViewModel item)
         {
             try
             {
