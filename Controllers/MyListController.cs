@@ -252,7 +252,7 @@ namespace MyList_backend.Controllers
                 _db.Items.Remove(itemToDelete);
                 _db.SaveChanges();
 
-                return Ok("Item deleted successfully");
+                return Ok(itemToDelete);
             }
             catch (Exception ex)
             {
@@ -267,10 +267,7 @@ namespace MyList_backend.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+         
 
                 string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 ApplicationUser currentUser = await _userManager.FindByIdAsync(userId);
@@ -299,7 +296,7 @@ namespace MyList_backend.Controllers
 
                 _db.SaveChanges();
 
-                return Ok("Item updated successfully");
+                return Ok(itemToUpdate);
             }
             catch (Exception ex)
             {
