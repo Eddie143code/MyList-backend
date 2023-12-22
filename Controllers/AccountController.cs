@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MyList_backend.Model;
 using MyList_backend.ViewModels;
@@ -95,6 +97,13 @@ namespace MyList_backend.Controllers
                 // Log or handle the exception accordingly
                 return StatusCode(500, "Internal server error");
             }
+        }
+
+        [HttpPost("logout")]
+        public async Task<ActionResult> LogOff()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok("Logout successful");
         }
 
     }
