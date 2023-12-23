@@ -84,7 +84,7 @@ namespace MyList_backend.Controllers
 
                 if (result.Succeeded)
                 {
-                    return Ok("Login successful"); // Replace with appropriate response
+                    return Ok(result);
                 }
                 else
                 {
@@ -100,10 +100,23 @@ namespace MyList_backend.Controllers
         }
 
         [HttpPost("logout")]
-        public async Task<ActionResult> LogOff()
+        public async Task<ActionResult> LogOut()
         {
-            await _signInManager.SignOutAsync();
-            return Ok("Logout successful");
+            if (!User.Identity.IsAuthenticated)
+            {
+                return BadRequest("User is not authenticated");
+            }
+
+            try
+            {
+                await _signInManager.SignOutAsync();
+                return Ok("Logout successful");
+            }
+            catch (Exception ex)
+            {
+               
+                return StatusCode(500, "An error occurred during logout");
+            }
         }
 
     }
